@@ -1,0 +1,6 @@
+.vscode/
+build/
+libraries/SDL2-2.32.10/.git-hash
+libraries/SDL2-2.32.10/BUGS.txt
+libraries/SDL2-2.32.10/WhatsNew.txt
+libraries/SDL2-2.32.10/docs/
