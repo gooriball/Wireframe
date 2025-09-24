@@ -11,6 +11,9 @@ project(${PROJECT_NAME})
 
 set(SOURCES
 	src/main.cpp
+	src/Map.cpp
+	src/Mesh.cpp
+	src/Shader.cpp
 )
 
 set(SDL2_DIR "${CMAKE_SOURCE_DIR}/libraries/SDL2-2.32.10/cmake")
@@ -33,7 +36,7 @@ set(LIBRARIES
 	glad
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${SDL2_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${SDL2_INCLUDE_DIRS} include)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBRARIES})
 

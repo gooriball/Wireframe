@@ -7,15 +7,10 @@
 #include <fstream>
 #include <sstream>
 
-struct Vertex
-{
-	float x;
-	float y;
-	float z;
-
-	Vertex(float x_, float y_, float z_) :
-	x{x_}, y{y_}, z{z_} {}
-};
+#include "Shader.h"
+#include "Vertex.h"
+#include "Map.h"
+#include "Mesh.h"
 
 std::vector<Vertex> readMap(const std::string& filePath);
 
@@ -74,10 +69,10 @@ int main(int ac, char* av[])
 		return (1);
 	}
 
-	std::vector<Vertex> vertices;
+	Map map;
 	try
 	{
-		vertices = readMap("plat");
+		map.readMap("maps/plat");
 	}
 	catch(const std::exception& e)
 	{
@@ -90,18 +85,7 @@ int main(int ac, char* av[])
 		return (1);
 	}
 	
-	unsigned int vao;
-	unsigned int vbo;
-
-	glGenVertexArrays(1, &vao);
-	glGenBuffers(1, &vbo);
-
-	glBindVertexArray(vao);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	glEnableVertexAttribArray(0);
+	Mesh mesh{map.makeVertices(), map.makeIndices()};
 
 	int width;
 	int height;
@@ -109,6 +93,22 @@ int main(int ac, char* av[])
 	glViewport(0, 0, width, height);
 
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	//glPointSize(1.0f);
+
+	try
+	{
+		Shader shader{"shaders/basic.vert", "shaders/basic.frag"};
+		shader.use();
+	}
+	catch(const std::exception& e)
+	{
+		std::cout << e.what() << '\n';
+		SDL_GL_DeleteContext(glContext);
+		SDL_DestroyWindow(window);
+		SDL_Quit();
+
+		return (1);
+	}
 
 	SDL_Event event;
 	bool running = true;
@@ -134,11 +134,11 @@ int main(int ac, char* av[])
 
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		mesh.draw();
+
 		SDL_GL_SwapWindow(window);
 	}
 	
-	glDeleteVertexArrays(1, &vao);
-	glDeleteBuffers(1, &vbo);
 	SDL_GL_DeleteContext(glContext);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
