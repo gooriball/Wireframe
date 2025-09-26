@@ -11,6 +11,7 @@ project(${PROJECT_NAME})
 
 set(SOURCES
 	src/main.cpp
+	src/Window.cpp
 	src/Map.cpp
 	src/Mesh.cpp
 	src/Shader.cpp
@@ -31,12 +32,16 @@ target_include_directories(glad PUBLIC
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 set(LIBRARIES
-	SDL2::SDL2main
-	SDL2::SDL2
-	glad
+SDL2::SDL2main
+SDL2::SDL2
+glad
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${SDL2_INCLUDE_DIRS} include)
+target_include_directories(${PROJECT_NAME} PRIVATE
+	${SDL2_INCLUDE_DIRS}
+	${CMAKE_SOURCE_DIR}/third_party/glm
+	include
+)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${LIBRARIES})
 

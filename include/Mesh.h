@@ -2,13 +2,14 @@
 
 #include <glad/glad.h>
 #include <vector>
+#include <string>
 
 #include "Vertex.h"
 
 class Mesh
 {
 	public:
-		Mesh(const std::vector<Vertex>&& vertices, const std::vector<unsigned int>&& indices);
+		Mesh(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices);
 		~Mesh();
 
 		void bind();

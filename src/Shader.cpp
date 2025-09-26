@@ -1,4 +1,4 @@
-#include <shader.h>
+#include "Shader.h"
 
 Shader::Shader(const std::string& vertexFile, const std::string& fragmentFile) :
 shaderProgram_(0)
@@ -12,6 +12,12 @@ Shader::~Shader()
 	{
 		glDeleteProgram(shaderProgram_);
 	}
+}
+
+void Shader::setMat4(const std::string& name, const glm::mat4& mat)
+{
+	unsigned int location = glGetUniformLocation(shaderProgram_, name.c_str());
+	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat));
 }
 
 void Shader::use()

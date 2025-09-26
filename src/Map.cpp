@@ -1,4 +1,5 @@
 #include "Map.h"
+#include <algorithm>
 
 Map::Map() :
 width_{0},
@@ -35,7 +36,7 @@ void Map::readMap(const std::string& filePath)
 
 	while (std::getline(file, line))
 	{
-		checkLineIsNumeric(line, lineNumber++);
+		checkLineIsNumeric(line, lineNumber);
 
 		int count = 0;
 		float data;
@@ -47,10 +48,15 @@ void Map::readMap(const std::string& filePath)
 		}
 		if (firstLineCount != count)
 		{
-			throw std::runtime_error("The file has to be a rectangle matrix! (line " + std::to_string(lineNumber - 1) + ")");
+			throw std::runtime_error("The file has to be a rectangle matrix! (line " + std::to_string(lineNumber) + ")");
 		}
 		++height_;
+		++lineNumber;
 	}
+
+	auto[min, max] = std::minmax_element(mapData_.begin(), mapData_.end());
+	minValue_ = *min;
+	maxValue_ = *max;
 }
 
 void Map::checkLineIsNumeric(const std::string& line, int lineNumber)
@@ -73,12 +79,13 @@ void Map::checkLineIsNumeric(const std::string& line, int lineNumber)
 std::vector<Vertex> Map::makeVertices()
 {
 	std::vector<Vertex> vertices;
+	vertices.reserve(width_ * height_);
 
 	for (unsigned int y = 0; y < height_; ++y)
 	{
 		for (unsigned int x = 0; x < width_; ++x)
 		{
-			vertices.emplace_back(x, y, mapData_[y * width_ + x]);
+			vertices.emplace_back(x, mapData_[y * width_ + x], y);
 		}
 	}
 
@@ -113,3 +120,9 @@ std::vector<unsigned int> Map::makeIndices()
 
 	return (indices);
 }
+
+unsigned int Map::getWidth() const { return (width_); }
+unsigned int Map::getHeight() const { return (height_); }
+
+float Map::getMinValue() const { return (minValue_);}
+float Map::getMaxValue() const { return (maxValue_);}
