@@ -1,4 +1,7 @@
 #include "Map.h"
+
+#include <fstream>
+#include <sstream>
 #include <algorithm>
 
 Map::Map() :
@@ -6,8 +9,12 @@ width_{0},
 height_{0}
 {}
 
-void Map::readMap(const std::string& filePath)
+Map::~Map() {}
+
+void Map::readMap(const std::string& filePath, const glm::vec3& colorLow, const glm::vec3& colorHigh)
 {
+	mapData_.clear();
+	
 	std::ifstream file{filePath};
 	if (!file.is_open())
 	{
@@ -24,6 +31,7 @@ void Map::readMap(const std::string& filePath)
 	checkLineIsNumeric(line, lineNumber++);
 
 	int firstLineCount = 0;
+	int height = 0;
 	float data;
 	std::istringstream ss{line};
 	while (ss >> data)
@@ -32,7 +40,7 @@ void Map::readMap(const std::string& filePath)
 		mapData_.emplace_back(data);
 	}
 	width_ = firstLineCount;
-	++height_;
+	++height;
 
 	while (std::getline(file, line))
 	{
@@ -50,13 +58,16 @@ void Map::readMap(const std::string& filePath)
 		{
 			throw std::runtime_error("The file has to be a rectangle matrix! (line " + std::to_string(lineNumber) + ")");
 		}
-		++height_;
+		++height;
 		++lineNumber;
 	}
+	height_ = height;
 
 	auto[min, max] = std::minmax_element(mapData_.begin(), mapData_.end());
 	minValue_ = *min;
 	maxValue_ = *max;
+	colorLow_ = colorLow;
+	colorHigh_ = colorHigh;
 }
 
 void Map::checkLineIsNumeric(const std::string& line, int lineNumber)
@@ -85,7 +96,7 @@ std::vector<Vertex> Map::makeVertices()
 	{
 		for (unsigned int x = 0; x < width_; ++x)
 		{
-			vertices.emplace_back(x, mapData_[y * width_ + x], y);
+			vertices.emplace_back(glm::vec3{x, mapData_[y * width_ + x], y}, lineInterpolation(mapData_[y * width_ + x]));
 		}
 	}
 
@@ -119,6 +130,16 @@ std::vector<unsigned int> Map::makeIndices()
 	}
 
 	return (indices);
+}
+
+glm::vec3 Map::lineInterpolation(float value)
+{
+	if (maxValue_ - minValue_ == 0)
+	{
+		return (glm::vec3{0.8f, 0.7f, 0.7f});
+	}
+	float t = (value - minValue_) / (maxValue_ - minValue_);
+	return ((1 - t) * colorLow_ + t * colorHigh_);
 }
 
 unsigned int Map::getWidth() const { return (width_); }

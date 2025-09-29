@@ -1,5 +1,7 @@
 #include "Window.h"
 
+#include <iostream>
+
 Window::Window() :
 window_{nullptr},
 glContext_{nullptr}
@@ -36,6 +38,16 @@ void Window::swapWindow()
 void Window::getDrawableSize(int& width, int& height)
 {
 	SDL_GL_GetDrawableSize(window_, &width, &height);
+}
+
+void Window::setViewportToWindowSize()
+{
+	int width;
+	int height;
+	SDL_GL_GetDrawableSize(window_, &width, &height);
+	glViewport(0, 0, width, height);
+	width_ = width;
+	height_ = height;
 }
 
 void Window::initSDL()
@@ -92,6 +104,9 @@ void Window::initGLAD()
 		throw std::runtime_error("Failed to initialize GLAD!");
 	}
 }
+
+unsigned int Window::getWidth() const { return (width_); }
+unsigned int Window::getHeight() const { return (height_); }
 
 SDL_Window* Window::getSDLWindow() const { return (window_); }
 SDL_GLContext Window::getGLContext() const { return (glContext_); }

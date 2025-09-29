@@ -15,6 +15,8 @@ set(SOURCES
 	src/Map.cpp
 	src/Mesh.cpp
 	src/Shader.cpp
+	src/Camera.cpp
+	src/App.cpp
 )
 
 set(SDL2_DIR "${CMAKE_SOURCE_DIR}/libraries/SDL2-2.32.10/cmake")

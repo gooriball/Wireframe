@@ -1,5 +1,8 @@
 #include "Shader.h"
 
+#include <iostream>
+#include <fstream>
+
 Shader::Shader(const std::string& vertexFile, const std::string& fragmentFile) :
 shaderProgram_(0)
 {
@@ -31,7 +34,6 @@ void Shader::init(const std::string& vertexFile, const std::string& fragmentFile
 	fragmentShader_ = compileShader(GL_FRAGMENT_SHADER, fragmentFile);
 	linkShader();
 }
-
 
 unsigned int Shader::compileShader(GLenum type, const std::string& filePath)
 {

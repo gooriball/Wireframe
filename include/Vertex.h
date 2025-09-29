@@ -1,11 +1,14 @@
 #pragma once
 
+#include <glm/vec3.hpp>
+
 struct Vertex
 {
-	float x;
-	float y;
-	float z;
+	glm::vec3 position_;
+	glm::vec3 color_;
 
-	Vertex(float x_, float y_, float z_) :
-	x{x_}, y{y_}, z{z_} {}
+	Vertex(const glm::vec3& position, const glm::vec3& color) :
+	position_{position},
+	color_{color}
+	{}
 };
