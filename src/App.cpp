@@ -6,24 +6,38 @@
 #include "Mesh.h"
 #include "Camera.h"
 #include "Projection.h"
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_opengl3.h"
+
+#include <filesystem>
 
 App::App() :
-running_{true}
+running_{true},
+currentMapIndex_(0),
+highColor_{0.0f, 1.0f, 0.0f},
+lowColor_{0.54f, 0.27f, 0.07f}
 {
 	init();
 }
-App::~App() {}
+App::~App()
+{
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplSDL2_Shutdown();
+	ImGui::DestroyContext();
+}
 
 void App::run()
 {
 	camera_->setMapInfo(map_->getWidth(), map_->getHeight(),
 						map_->getMinValue(), map_->getMaxValue());
 	camera_->setWindowSize(window_->getWidth(), window_->getHeight());
-	camera_->update(Projection::Isometric);
+	camera_->update(Projection::Perspective);
 	
 	while (running_)
 	{
 		handleEvents();
+		processInput();
 		render();
 	}
 }
@@ -35,11 +49,20 @@ void App::init()
 
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
+	ImGui::CreateContext();
+	ImGui_ImplSDL2_InitForOpenGL(window_->getSDLWindow(), window_->getGLContext());
+	ImGui_ImplOpenGL3_Init("#version 330 core");
+	ImGuiIO& io = ImGui::GetIO();
+	io.FontGlobalScale = 1.2f;
+	ImGui::GetStyle().ScaleAllSizes(1.2f);
+	
+	readMapList();
+
 	map_ = std::make_unique<Map>();
-	std::string mapPath{"maps/test2.txt"};
-	glm::vec3 colorLow{0.54f, 0.27f, 0.07f};
-	glm::vec3 colorHigh{0.0f, 1.0f, 0.0f};
-	map_->readMap(mapPath, colorLow, colorHigh);
+	std::string mapPath{"maps/" + mapList_[currentMapIndex_]};
+	map_->readMap(mapPath);
+	map_->setColorHigh(highColor_);
+	map_->setColorLow(lowColor_);
 
 	mesh_ = std::make_unique<Mesh>(map_->makeVertices(), map_->makeIndices());
 
@@ -49,6 +72,7 @@ void App::init()
 	shader_->use();
 
 	camera_ = std::make_unique<Camera>();
+
 }
 
 void App::handleEvents()
@@ -56,6 +80,7 @@ void App::handleEvents()
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
 	{
+		ImGui_ImplSDL2_ProcessEvent(&event);
 		switch (event.type)
 		{
 			case SDL_QUIT:
@@ -80,13 +105,76 @@ void App::handleEvents()
 	}
 }
 
+void App::processInput()
+{
+
+}
+
 void App::render()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
+
 	shader_->use();
 	shader_->setMat4("model", camera_->getModel());
 	shader_->setMat4("view", camera_->getView());
 	shader_->setMat4("projection", camera_->getProjection());
 	mesh_->draw();
+
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDL2_NewFrame();
+	ImGui::NewFrame();
+
+	ImGui::Begin("Settings");
+
+	ImGui::Text("Map List");
+	ImGui::SameLine();
+	if (ImGui::Combo("##Map List", &currentMapIndex_, mapListImgui_.data(), mapListImgui_.size()))
+	{
+		map_->readMap("maps/" + mapList_[currentMapIndex_]);
+		mesh_ = std::make_unique<Mesh>(map_->makeVertices(), map_->makeIndices());
+	}
+	ImGui::Dummy(ImVec2(0, 10));
+	
+	ImGui::Text("High Color");
+	ImGui::SameLine();
+	if (ImGui::ColorEdit3("##High Color", (float*)&highColor_))
+	{
+		map_->setColorHigh(highColor_);
+		mesh_ = std::make_unique<Mesh>(map_->makeVertices(), map_->makeIndices());
+	}
+	ImGui::Dummy(ImVec2(0, 10));
+	
+	ImGui::Text("Low Color");
+	ImGui::SameLine();
+	if (ImGui::ColorEdit3("##Low Color", (float*)&lowColor_))
+	{
+		map_->setColorLow(lowColor_);
+		mesh_ = std::make_unique<Mesh>(map_->makeVertices(), map_->makeIndices());
+	}
+	ImGui::Dummy(ImVec2(0, 10));
+
+	ImGui::End();
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 	window_->swapWindow();
+}
+
+void App::readMapList()
+{
+	std::string mapDirectory{"maps"};
+	for (const auto& map : std::filesystem::directory_iterator(mapDirectory))
+	{
+		if (map.is_regular_file())
+		{
+			std::string filename{map.path().filename().string()};
+			mapList_.push_back(filename);
+		}
+	}
+
+	for (const auto& map : mapList_)
+	{
+		mapListImgui_.push_back(map.c_str());
+	}
 }

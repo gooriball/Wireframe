@@ -13,11 +13,15 @@ class Map
 		Map();
 		~Map();
 
-		void readMap(const std::string& filePath,
-						const glm::vec3& colorLow, const glm::vec3& colorHigh);
+		//void readMap(const std::string& filePath,
+		//				const glm::vec3& colorLow, const glm::vec3& colorHigh);
+		void readMap(const std::string& filePath);
 
 		std::vector<Vertex> makeVertices();
 		std::vector<unsigned int> makeIndices();
+
+		void setColorLow(const glm::vec3& colorLow);
+		void setColorHigh(const glm::vec3& colorHigh);
 
 		unsigned int getWidth() const;
 		unsigned int getHeight() const;

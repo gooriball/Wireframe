@@ -1,6 +1,10 @@
 #pragma once
 
 #include <memory>
+#include <vector>
+#include <string>
+
+#include <glm/vec3.hpp>
 
 class Window;
 class Shader;
@@ -19,7 +23,9 @@ class App
 	private:	
 		void init();
 		void handleEvents();
+		void processInput();
 		void render();
+		void readMapList();
 
 		bool running_;
 
@@ -28,4 +34,10 @@ class App
 		std::unique_ptr<Map> map_;
 		std::unique_ptr<Mesh> mesh_;
 		std::unique_ptr<Camera> camera_;
+
+		std::vector<std::string> mapList_;
+		std::vector<const char*> mapListImgui_;
+		int currentMapIndex_;
+		glm::vec3 lowColor_;
+		glm::vec3 highColor_;
 };

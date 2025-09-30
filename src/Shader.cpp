@@ -23,6 +23,12 @@ void Shader::setMat4(const std::string& name, const glm::mat4& mat)
 	glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat));
 }
 
+void Shader::setVec3(const std::string& name, const glm::vec3& vec)
+{
+	unsigned int location = glGetUniformLocation(shaderProgram_, name.c_str());
+	glUniform3fv(location, 1, glm::value_ptr(vec));
+}
+
 void Shader::use()
 {
 	glUseProgram(shaderProgram_);
