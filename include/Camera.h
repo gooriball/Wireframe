@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
+#include <string>
 
 #include "Projection.h"
 
@@ -12,7 +13,7 @@ class Camera
 		Camera();
 		~Camera();
 
-		void update(Projection projection);
+		void update(const std::string& projection);
 		void setMapInfo(unsigned int width, unsigned int height, float minValue, float maxValue);
 		void setWindowSize(int width, int height);
 
@@ -23,7 +24,7 @@ class Camera
 	private:
 		void updateModel();
 		void updateView();
-		void updateProjection(Projection projection);
+		void updateProjection(const std::string& projection);
 		
 		unsigned int mapWidth_;
 		unsigned int mapHeight_;

@@ -6,6 +6,8 @@
 
 #include <glm/vec3.hpp>
 
+#include "Projection.h"
+
 class Window;
 class Shader;
 class Map;
@@ -26,6 +28,7 @@ class App
 		void processInput();
 		void render();
 		void readMapList();
+		void setProjectionList();
 
 		bool running_;
 
@@ -40,4 +43,8 @@ class App
 		int currentMapIndex_;
 		glm::vec3 lowColor_;
 		glm::vec3 highColor_;
+
+		std::vector<std::string> projectionList_;
+		std::vector<const char*> projectionListImgui_;
+		int currentProjectionIndex_;
 };

@@ -2,9 +2,13 @@
 
 out vec4 FragColor;
 
-in vec4 vertexColor;
+in float heightNormalized;
+
+uniform vec3 lowColor;
+uniform vec3 highColor;
 
 void main()
 {
-	FragColor = vertexColor;
+	vec3 color = mix(lowColor, highColor, heightNormalized);
+	FragColor = vec4(color, 1.0f);
 }

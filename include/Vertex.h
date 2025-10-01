@@ -5,10 +5,10 @@
 struct Vertex
 {
 	glm::vec3 position_;
-	glm::vec3 color_;
+	float heightNormalized_;
 
-	Vertex(const glm::vec3& position, const glm::vec3& color) :
+	Vertex(const glm::vec3& position, float heightNormalized) :
 	position_{position},
-	color_{color}
+	heightNormalized_{heightNormalized}
 	{}
 };

@@ -14,9 +14,10 @@
 
 App::App() :
 running_{true},
-currentMapIndex_(0),
+currentMapIndex_(7),
 highColor_{0.0f, 1.0f, 0.0f},
-lowColor_{0.54f, 0.27f, 0.07f}
+lowColor_{0.54f, 0.27f, 0.07f},
+currentProjectionIndex_{0}
 {
 	init();
 }
@@ -29,11 +30,6 @@ App::~App()
 
 void App::run()
 {
-	camera_->setMapInfo(map_->getWidth(), map_->getHeight(),
-						map_->getMinValue(), map_->getMaxValue());
-	camera_->setWindowSize(window_->getWidth(), window_->getHeight());
-	camera_->update(Projection::Perspective);
-	
 	while (running_)
 	{
 		handleEvents();
@@ -57,12 +53,11 @@ void App::init()
 	ImGui::GetStyle().ScaleAllSizes(1.2f);
 	
 	readMapList();
+	setProjectionList();
 
 	map_ = std::make_unique<Map>();
 	std::string mapPath{"maps/" + mapList_[currentMapIndex_]};
 	map_->readMap(mapPath);
-	map_->setColorHigh(highColor_);
-	map_->setColorLow(lowColor_);
 
 	mesh_ = std::make_unique<Mesh>(map_->makeVertices(), map_->makeIndices());
 
@@ -72,7 +67,9 @@ void App::init()
 	shader_->use();
 
 	camera_ = std::make_unique<Camera>();
-
+	camera_->setMapInfo(map_->getWidth(), map_->getHeight(),
+						map_->getMinValue(), map_->getMaxValue());
+	camera_->setWindowSize(window_->getWidth(), window_->getHeight());
 }
 
 void App::handleEvents()
@@ -99,6 +96,7 @@ void App::handleEvents()
 					event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
 				{
 					window_->setViewportToWindowSize();
+					camera_->setWindowSize(window_->getWidth(), window_->getHeight());
 				}
 				break ;
 		}
@@ -114,10 +112,14 @@ void App::render()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	camera_->update(projectionList_[currentProjectionIndex_]);
+
 	shader_->use();
 	shader_->setMat4("model", camera_->getModel());
 	shader_->setMat4("view", camera_->getView());
 	shader_->setMat4("projection", camera_->getProjection());
+	shader_->setVec3("highColor", highColor_);
+	shader_->setVec3("lowColor", lowColor_);
 	mesh_->draw();
 
 	ImGui_ImplOpenGL3_NewFrame();
@@ -132,6 +134,8 @@ void App::render()
 	{
 		map_->readMap("maps/" + mapList_[currentMapIndex_]);
 		mesh_ = std::make_unique<Mesh>(map_->makeVertices(), map_->makeIndices());
+		camera_->setMapInfo(map_->getWidth(), map_->getHeight(),
+							map_->getMinValue(), map_->getMaxValue());
 	}
 	ImGui::Dummy(ImVec2(0, 10));
 	
@@ -139,8 +143,7 @@ void App::render()
 	ImGui::SameLine();
 	if (ImGui::ColorEdit3("##High Color", (float*)&highColor_))
 	{
-		map_->setColorHigh(highColor_);
-		mesh_ = std::make_unique<Mesh>(map_->makeVertices(), map_->makeIndices());
+		shader_->setVec3("highColor", highColor_);
 	}
 	ImGui::Dummy(ImVec2(0, 10));
 	
@@ -148,10 +151,13 @@ void App::render()
 	ImGui::SameLine();
 	if (ImGui::ColorEdit3("##Low Color", (float*)&lowColor_))
 	{
-		map_->setColorLow(lowColor_);
-		mesh_ = std::make_unique<Mesh>(map_->makeVertices(), map_->makeIndices());
+		shader_->setVec3("lowColor", lowColor_);
 	}
 	ImGui::Dummy(ImVec2(0, 10));
+
+	ImGui::Text("Projection");
+	ImGui::SameLine();
+	ImGui::Combo("##Projection", &currentProjectionIndex_, projectionListImgui_.data(), projectionListImgui_.size());
 
 	ImGui::End();
 
@@ -176,5 +182,20 @@ void App::readMapList()
 	for (const auto& map : mapList_)
 	{
 		mapListImgui_.push_back(map.c_str());
+	}
+}
+
+void App::setProjectionList()
+{
+	std::vector<std::string> projectionList{"Isometric", "Perspective"};
+
+	for (const auto& projection : projectionList)
+	{
+		projectionList_.push_back(projection);
+	}
+
+	for (const auto& projection : projectionList_)
+	{
+		projectionListImgui_.push_back(projection.c_str());
 	}
 }

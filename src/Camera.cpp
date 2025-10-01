@@ -9,7 +9,7 @@ projection_{1.0f}
 
 Camera::~Camera() {}
 
-void Camera::update(Projection projection)
+void Camera::update(const std::string& projection)
 {
 	updateModel();
 	updateView();
@@ -60,19 +60,17 @@ void Camera::updateView()
 	view_ = glm::lookAt(eye, center, up);
 }
 
-void Camera::updateProjection(Projection projection)
+void Camera::updateProjection(const std::string& projection)
 {
-	switch (projection)
+	if (projection == "Isometric")
 	{
-		case Projection::Isometric:
-			viewSize_ = largestDim_ * 0.5f;
-			projection_ = glm::ortho(-viewSize_ * aspectRatio_, viewSize_ * aspectRatio_,
-								-viewSize_, viewSize_, dist_ * 0.5f, dist_ * 2.0f);
-			break ;
-
-		case Projection::Perspective:
-			fovy_ = glm::radians(45.0f);
-			projection_ = glm::perspective(fovy_, aspectRatio_, dist_ * 0.5f, dist_ * 2.0f);
-			break ;
+		viewSize_ = largestDim_ * 0.5f;
+		projection_ = glm::ortho(-viewSize_ * aspectRatio_, viewSize_ * aspectRatio_,
+							-viewSize_, viewSize_, dist_ * 0.5f, dist_ * 2.0f);
+	}
+	else if (projection == "Perspective")
+	{
+		fovy_ = glm::radians(45.0f);
+		projection_ = glm::perspective(fovy_, aspectRatio_, dist_ * 0.5f, dist_ * 2.0f);
 	}
 }
