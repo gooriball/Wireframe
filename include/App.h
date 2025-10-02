@@ -5,8 +5,7 @@
 #include <string>
 
 #include <glm/vec3.hpp>
-
-#include "Projection.h"
+#include <SDL.h>
 
 class Window;
 class Shader;
@@ -26,6 +25,7 @@ class App
 		void init();
 		void handleEvents();
 		void processInput();
+		void update();
 		void render();
 		void readMapList();
 		void setProjectionList();
@@ -47,4 +47,11 @@ class App
 		std::vector<std::string> projectionList_;
 		std::vector<const char*> projectionListImgui_;
 		int currentProjectionIndex_;
+
+		float cameraSpeed_;
+		glm::vec3 movement_;
+		bool hasMoved_;
+
+		Uint64 lastCounter_;
+		Uint64 countsPerSecond_;
 };

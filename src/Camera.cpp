@@ -1,19 +1,20 @@
 #include "Camera.h"
 
-
 Camera::Camera() :
 model_{1.0f},
 view_{1.0f},
-projection_{1.0f}
+projection_{1.0f},
+viewCenter_{glm::vec3{0.0f}},
+projectionType_{"Isometric"}
 {}
 
 Camera::~Camera() {}
 
-void Camera::update(const std::string& projection)
+void Camera::update()
 {
 	updateModel();
 	updateView();
-	updateProjection(projection);
+	updateProjection();
 }
 
 void Camera::setMapInfo(unsigned int width, unsigned int height, float minValue, float maxValue)
@@ -35,12 +36,6 @@ void Camera::setWindowSize(int width, int height)
 	aspectRatio_ = (windowHeight_ != 0) ? static_cast<float>(windowWidth_) / windowHeight_ : 1.0f;
 }
 
-glm::mat4 Camera::getModel() const { return (model_); }
-
-glm::mat4 Camera::getView() const { return (view_); }
-
-glm::mat4 Camera::getProjection() const { return (projection_); }
-
 void Camera::updateModel()
 {
 	model_ = glm::mat4(1.0f);
@@ -52,25 +47,33 @@ void Camera::updateModel()
 
 void Camera::updateView()
 {
-	glm::vec3 center{glm::vec3(0.0f)};
 	glm::vec3 dir{glm::normalize(glm::vec3{1.0f, -1.0f, -1.0f})};
 	dist_ = largestDim_;
-	glm::vec3 eye{center - dir * dist_};
+	glm::vec3 eye{viewCenter_ - dir * dist_};
 	glm::vec3 up{glm::vec3{0.0f, 1.0f, 0.0f}};
-	view_ = glm::lookAt(eye, center, up);
+	view_ = glm::lookAt(eye, viewCenter_, up);
 }
 
-void Camera::updateProjection(const std::string& projection)
+void Camera::updateProjection()
 {
-	if (projection == "Isometric")
+	if (projectionType_ == "Isometric")
 	{
 		viewSize_ = largestDim_ * 0.5f;
 		projection_ = glm::ortho(-viewSize_ * aspectRatio_, viewSize_ * aspectRatio_,
 							-viewSize_, viewSize_, dist_ * 0.5f, dist_ * 2.0f);
 	}
-	else if (projection == "Perspective")
+	else if (projectionType_ == "Perspective")
 	{
 		fovy_ = glm::radians(45.0f);
 		projection_ = glm::perspective(fovy_, aspectRatio_, dist_ * 0.5f, dist_ * 2.0f);
 	}
 }
+
+void Camera::setViewCenter(const glm::vec3& viewCenter) { viewCenter_ = viewCenter; }
+void Camera::setProjectionType(const std::string& projectionType) { projectionType_ = projectionType; }
+
+glm::vec3 Camera::getViewCenter() const { return (viewCenter_); }
+
+glm::mat4 Camera::getModel() const { return (model_); }
+glm::mat4 Camera::getView() const { return (view_); }
+glm::mat4 Camera::getProjection() const { return (projection_); }

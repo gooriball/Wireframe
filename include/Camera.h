@@ -5,17 +5,20 @@
 #include <algorithm>
 #include <string>
 
-#include "Projection.h"
-
 class Camera
 {
 	public:
 		Camera();
 		~Camera();
 
-		void update(const std::string& projection);
+		void update();
 		void setMapInfo(unsigned int width, unsigned int height, float minValue, float maxValue);
 		void setWindowSize(int width, int height);
+
+		void setViewCenter(const glm::vec3& viewCenter);
+		void setProjectionType(const std::string& projectionType);
+
+		glm::vec3 getViewCenter() const;
 
 		glm::mat4 getModel() const;
 		glm::mat4 getView() const;
@@ -24,7 +27,7 @@ class Camera
 	private:
 		void updateModel();
 		void updateView();
-		void updateProjection(const std::string& projection);
+		void updateProjection();
 		
 		unsigned int mapWidth_;
 		unsigned int mapHeight_;
@@ -45,4 +48,7 @@ class Camera
 		glm::mat4 model_;
 		glm::mat4 view_;
 		glm::mat4 projection_;
+
+		glm::vec3 viewCenter_;
+		std::string projectionType_;
 };

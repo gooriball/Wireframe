@@ -26,7 +26,6 @@ class Map
 
 	private:
 		void checkLineIsNumeric(const std::string& line, int lineNumber);
-		glm::vec3 lineInterpolation(float value);
 		
 		unsigned int width_;
 		unsigned int height_;

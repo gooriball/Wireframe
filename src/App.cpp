@@ -5,19 +5,24 @@
 #include "Map.h"
 #include "Mesh.h"
 #include "Camera.h"
-#include "Projection.h"
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 
 #include <filesystem>
+#include <iostream>
 
 App::App() :
 running_{true},
-currentMapIndex_(7),
+currentMapIndex_(0),
 highColor_{0.0f, 1.0f, 0.0f},
 lowColor_{0.54f, 0.27f, 0.07f},
-currentProjectionIndex_{0}
+currentProjectionIndex_{0},
+cameraSpeed_{5.0f},
+countsPerSecond_{SDL_GetPerformanceFrequency()},
+lastCounter_{SDL_GetPerformanceCounter()},
+movement_{glm::vec3{0.0f}},
+hasMoved_{false}
 {
 	init();
 }
@@ -34,6 +39,7 @@ void App::run()
 	{
 		handleEvents();
 		processInput();
+		update();
 		render();
 	}
 }
@@ -105,14 +111,38 @@ void App::handleEvents()
 
 void App::processInput()
 {
+	movement_ = glm::vec3{0.0f};
+	const Uint8* state = SDL_GetKeyboardState(NULL);
+	if (state[SDL_SCANCODE_W]) { movement_.y += 1.0f; }
+	if (state[SDL_SCANCODE_A]) { movement_.x += -1.0f; }
+	if (state[SDL_SCANCODE_S]) { movement_.y += -1.0f; }
+	if (state[SDL_SCANCODE_D]) { movement_.x += 1.0f; }
+	hasMoved_ = (movement_.x != 0.0f || movement_.y != 0.0f);
+}
 
+void App::update()
+{
+	Uint64 currentCounter{SDL_GetPerformanceCounter()};
+	double deltaTime{(currentCounter - lastCounter_) / static_cast<double>(countsPerSecond_)};
+	if (hasMoved_)
+	{
+		glm::mat4 view{camera_->getView()};
+		glm::mat4 cameraToWorld{glm::inverse(view)};
+		glm::vec3 cameraRight{glm::normalize(cameraToWorld[0])};
+		glm::vec3 cameraUp{glm::normalize(cameraToWorld[1])};
+		float speed = cameraSpeed_ * static_cast<float>(deltaTime);
+		glm::vec3 delta{(cameraRight * -movement_.x + cameraUp * -movement_.y) * speed};
+		camera_->setViewCenter(camera_->getViewCenter() + delta);
+		hasMoved_ = false;
+	}
+	lastCounter_ = currentCounter;
 }
 
 void App::render()
 {
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	camera_->update(projectionList_[currentProjectionIndex_]);
+	camera_->update();
 
 	shader_->use();
 	shader_->setMat4("model", camera_->getModel());
@@ -136,6 +166,7 @@ void App::render()
 		mesh_ = std::make_unique<Mesh>(map_->makeVertices(), map_->makeIndices());
 		camera_->setMapInfo(map_->getWidth(), map_->getHeight(),
 							map_->getMinValue(), map_->getMaxValue());
+		camera_->setViewCenter(glm::vec3{0.0f});
 	}
 	ImGui::Dummy(ImVec2(0, 10));
 	
@@ -154,10 +185,18 @@ void App::render()
 		shader_->setVec3("lowColor", lowColor_);
 	}
 	ImGui::Dummy(ImVec2(0, 10));
-
+	
 	ImGui::Text("Projection");
 	ImGui::SameLine();
-	ImGui::Combo("##Projection", &currentProjectionIndex_, projectionListImgui_.data(), projectionListImgui_.size());
+	if (ImGui::Combo("##Projection", &currentProjectionIndex_, projectionListImgui_.data(), projectionListImgui_.size()))
+	{
+		camera_->setProjectionType(projectionList_[currentProjectionIndex_]);
+	}
+	ImGui::Dummy(ImVec2(0, 10));
+
+	ImGui::Text("Move Speed");
+	ImGui::SameLine();
+	ImGui::SliderFloat("##Move Speed", &cameraSpeed_, 0.0f, 100.0f);
 
 	ImGui::End();
 

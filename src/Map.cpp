@@ -95,7 +95,7 @@ std::vector<Vertex> Map::makeVertices()
 		for (unsigned int x = 0; x < width_; ++x)
 		{
 			float height{mapData_[y * width_ + x]};
-			float heightNormalized{(height - minValue_) / (maxValue_ - minValue_)}; 
+			float heightNormalized{(height - minValue_) / ((maxValue_ - minValue_) != 0 ? (maxValue_ - minValue_) : 1.0f)}; 
 			vertices.emplace_back(glm::vec3{x, height, y}, heightNormalized);
 		}
 	}
