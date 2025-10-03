@@ -41,6 +41,7 @@ class App
 		std::vector<std::string> mapList_;
 		std::vector<const char*> mapListImgui_;
 		int currentMapIndex_;
+		glm::vec3 backgroundColor_;
 		glm::vec3 lowColor_;
 		glm::vec3 highColor_;
 
@@ -51,6 +52,7 @@ class App
 		float cameraSpeed_;
 		glm::vec3 movement_;
 		bool hasMoved_;
+		int mouseWheelSteps_;
 
 		Uint64 lastCounter_;
 		Uint64 countsPerSecond_;

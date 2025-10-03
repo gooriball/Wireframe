@@ -17,7 +17,10 @@ class Camera
 
 		void setViewCenter(const glm::vec3& viewCenter);
 		void setProjectionType(const std::string& projectionType);
+		void setZoomInOut(int zoomInOut);
 
+		float getScale() const;
+		float getfovDegree() const;
 		glm::vec3 getViewCenter() const;
 
 		glm::mat4 getModel() const;
@@ -25,6 +28,7 @@ class Camera
 		glm::mat4 getProjection() const;
 
 	private:
+		void updateZoom();
 		void updateModel();
 		void updateView();
 		void updateProjection();
@@ -39,7 +43,12 @@ class Camera
 		float largestDim_;
 		float dist_;
 		float viewSize_;
+		float scale_;
+		float base_;
+		int zoomInOut_;
 		float fovy_;
+		float fovDegree_;
+		float baseFovDegree_;
 
 		int windowWidth_;
 		int windowHeight_;

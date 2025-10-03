@@ -15,6 +15,7 @@
 App::App() :
 running_{true},
 currentMapIndex_(0),
+backgroundColor_{0.2f, 0.3f, 0.3f},
 highColor_{0.0f, 1.0f, 0.0f},
 lowColor_{0.54f, 0.27f, 0.07f},
 currentProjectionIndex_{0},
@@ -22,7 +23,8 @@ cameraSpeed_{5.0f},
 countsPerSecond_{SDL_GetPerformanceFrequency()},
 lastCounter_{SDL_GetPerformanceCounter()},
 movement_{glm::vec3{0.0f}},
-hasMoved_{false}
+hasMoved_{false},
+mouseWheelSteps_{0}
 {
 	init();
 }
@@ -48,8 +50,6 @@ void App::init()
 {
 	window_ = std::make_unique<Window>();
 	window_->setViewportToWindowSize();
-
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
 	ImGui::CreateContext();
 	ImGui_ImplSDL2_InitForOpenGL(window_->getSDLWindow(), window_->getGLContext());
@@ -105,6 +105,10 @@ void App::handleEvents()
 					camera_->setWindowSize(window_->getWidth(), window_->getHeight());
 				}
 				break ;
+
+			case SDL_MOUSEWHEEL:
+				mouseWheelSteps_ = event.wheel.y;
+				break ;
 		}
 	}
 }
@@ -135,11 +139,16 @@ void App::update()
 		camera_->setViewCenter(camera_->getViewCenter() + delta);
 		hasMoved_ = false;
 	}
+
+	camera_->setZoomInOut(mouseWheelSteps_);
+	mouseWheelSteps_ = 0;
+
 	lastCounter_ = currentCounter;
 }
 
 void App::render()
 {
+	glClearColor(backgroundColor_.r, backgroundColor_.g, backgroundColor_.b, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	camera_->update();
@@ -170,6 +179,11 @@ void App::render()
 	}
 	ImGui::Dummy(ImVec2(0, 10));
 	
+	ImGui::Text("Background Color");
+	ImGui::SameLine();
+	ImGui::ColorEdit3("##Background Color", (float*)&backgroundColor_);
+	ImGui::Dummy(ImVec2(0, 10));
+
 	ImGui::Text("High Color");
 	ImGui::SameLine();
 	if (ImGui::ColorEdit3("##High Color", (float*)&highColor_))
@@ -193,10 +207,13 @@ void App::render()
 		camera_->setProjectionType(projectionList_[currentProjectionIndex_]);
 	}
 	ImGui::Dummy(ImVec2(0, 10));
-
+	
 	ImGui::Text("Move Speed");
 	ImGui::SameLine();
 	ImGui::SliderFloat("##Move Speed", &cameraSpeed_, 0.0f, 100.0f);
+	ImGui::Dummy(ImVec2(0, 10));
+
+	ImGui::Text("Zoom  X %.2f", camera_->getScale());
 
 	ImGui::End();
 
