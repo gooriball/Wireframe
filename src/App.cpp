@@ -80,6 +80,7 @@ void App::init()
 
 void App::handleEvents()
 {
+	ImGuiIO& io = ImGui::GetIO();
 	SDL_Event event;
 	while (SDL_PollEvent(&event))
 	{
@@ -107,6 +108,7 @@ void App::handleEvents()
 				break ;
 
 			case SDL_MOUSEWHEEL:
+				if (io.WantCaptureMouse) { continue ; }
 				mouseWheelSteps_ = event.wheel.y;
 				break ;
 		}
