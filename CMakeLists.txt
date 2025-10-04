@@ -109,3 +109,29 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
           $<TARGET_FILE:SDL2::SDL2>
           $<TARGET_FILE_DIR:${PROJECT_NAME}>
 )
+
+add_custom_target(run
+  COMMAND $<TARGET_FILE:${PROJECT_NAME}>
+  DEPENDS ${PROJECT_NAME}
+  WORKING_DIRECTORY $<TARGET_FILE_DIR:${PROJECT_NAME}>
+)
+
+function(copy_assets TARGET)
+  foreach(PATH IN LISTS ARGN)
+    if (IS_DIRECTORY "${CMAKE_SOURCE_DIR}/${PATH}")
+      add_custom_command(TARGET ${TARGET} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+                "$<TARGET_FILE_DIR:${TARGET}>/${PATH}"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_SOURCE_DIR}/${PATH}"
+                "$<TARGET_FILE_DIR:${TARGET}>/${PATH}")
+    elseif(EXISTS "${CMAKE_SOURCE_DIR}/${PATH}")
+      add_custom_command(TARGET ${TARGET} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_SOURCE_DIR}/${PATH}"
+                "$<TARGET_FILE_DIR:${TARGET}>")
+    endif()
+  endforeach()
+endfunction()
+
+copy_assets(${PROJECT_NAME} shaders maps)
